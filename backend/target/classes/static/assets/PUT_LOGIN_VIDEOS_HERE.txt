@@ -1,0 +1,11 @@
+Place the login comparison videos here:
+
+7_src.mp4
+7_ours.mp4
+8_src.mp4
+8_ours.mp4
+9_src.mp4
+9_ours.mp4
+
+For Spring Boot static hosting, also copy these videos to:
+backend/src/main/resources/static/assets/
