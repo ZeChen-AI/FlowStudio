@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="FlowStudio helps creators direct precise, local video edits from a first-frame selection."
+    />
+    <title>FlowStudio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="auth-locked">
+
+    <section id="auth-screen" class="flow-auth-screen" aria-label="FlowStudio login">
+      <div class="flow-auth-video-stage" id="auth-video-stage">
+        <video id="auth-source-video" class="flow-auth-video flow-auth-video-source" muted autoplay loop playsinline preload="auto"></video>
+        <video id="auth-ours-video" class="flow-auth-video flow-auth-video-ours" muted autoplay loop playsinline preload="auto"></video>
+        <div class="flow-auth-vignette" aria-hidden="true"></div>
+        <div class="flow-auth-grain" aria-hidden="true"></div>
+        <header class="flow-auth-topbar" aria-label="FlowStudio login navigation">
+          <a class="flow-auth-logo" href="#" aria-label="FlowStudio login home"><span class="flow-auth-logo-mark" aria-hidden="true"></span><span>FlowStudio</span></a>
+          <button id="auth-open-button" class="flow-auth-open" type="button">Log in</button>
+        </header>
+        <button id="auth-prev-video" class="flow-auth-arrow flow-auth-arrow-left" type="button" aria-label="Previous comparison video">‹</button>
+        <button id="auth-next-video" class="flow-auth-arrow flow-auth-arrow-right" type="button" aria-label="Next comparison video">›</button>
+        <div class="flow-auth-label flow-auth-label-source">Source</div>
+        <div class="flow-auth-label flow-auth-label-ours">FlowStudio</div>
+        <div class="flow-auth-comparison-meta" aria-hidden="true"><span id="auth-video-index">01 / 03</span><span>drag to compare</span></div>
+        <button id="auth-reveal-handle" class="flow-auth-reveal-handle" type="button" role="slider" aria-label="Compare source and FlowStudio result" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span></span></button>
+      </div>
+      <div id="auth-modal-backdrop" class="flow-auth-modal-backdrop" hidden>
+        <div class="flow-auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+          <button id="auth-modal-close" class="flow-auth-modal-close" type="button" aria-label="Close login panel">×</button>
+          <div class="flow-mascot-stage flow-mascot-stage-card" id="auth-mascot" aria-hidden="true">
+            <div class="flow-mascot flow-mascot-purple"><span class="flow-eyes"><i></i><i></i></span></div>
+            <div class="flow-mascot flow-mascot-dark"><span class="flow-eyes"><i></i><i></i></span></div>
+            <div class="flow-mascot flow-mascot-orange"><span class="flow-eyes tiny"><i></i><i></i></span></div>
+            <div class="flow-mascot flow-mascot-yellow"><span class="flow-eyes tiny"><i></i><i></i></span><span class="flow-mouth"></span></div>
+          </div>
+          <div class="flow-auth-card-copy"><h1 id="auth-title">Welcome back!</h1><p id="auth-subtitle">Please enter your details</p></div>
+          <form id="auth-form" class="flow-auth-form">
+            <label class="flow-auth-field"><span>Username</span><input id="auth-username" name="username" type="text" autocomplete="username" placeholder="flow_user" required /></label>
+            <label class="flow-auth-field"><span>Password</span><input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required /></label>
+            <button id="auth-submit" class="flow-auth-submit" type="submit">Log in</button>
+            <p id="auth-message" class="flow-auth-message" role="status"></p>
+          </form>
+          <p class="flow-auth-switch"><span id="auth-toggle-text">Don't have an account?</span><button id="auth-toggle" type="button">Sign Up</button></p>
+        </div>
+      </div>
+    </section>
+
+    <div class="flow-session-actions" id="flow-session-actions" hidden>
+      <span id="current-user" class="flow-current-user"></span>
+      <button id="logout-button" class="flow-session-button" type="button">Logout</button>
+      <button id="delete-account-button" class="flow-session-button danger" type="button">Delete Account</button>
+    </div>
+
+    <header class="site-header" aria-label="FlowStudio navigation">
+      <a class="brand" href="#top" aria-label="FlowStudio home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>FlowStudio</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#studio">Studio</a>
+        <a href="#pipeline">Workflow</a>
+        <a href="#result">Preview</a>
+      </nav>
+      <a
+        class="repo-link"
+        href="https://github.com/ZeChen-AI/FlowStudio.github.io"
+        target="_blank"
+        rel="noreferrer"
+      >
+        GitHub
+      </a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero-image" src="assets/studio-hero.png" alt="" />
+        <div class="hero-overlay"></div>
+        <div class="hero-ambient" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Controlled Video Editing</p>
+          <h1 id="hero-title">FlowStudio</h1>
+          <p class="hero-copy">
+            Select a region in the first frame, describe the change, and carry the edit through the clip.
+          </p>
+          <div class="hero-tags" aria-label="FlowStudio editing capabilities">
+            <span>First-frame selection</span>
+            <span>Local edits</span>
+            <span>Temporal continuity</span>
+            <span>Preview-ready output</span>
+          </div>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="button button-primary" href="#studio">Start Editing</a>
+            <a class="button button-secondary" href="#pipeline">View Workflow</a>
+          </div>
+        </div>
+        <div class="hero-workbench" aria-label="FlowStudio video editor preview">
+          <div class="workbench-topbar">
+            <span class="topbar-light"></span>
+            <span>Project: Directed Local Edit</span>
+            <strong>READY</strong>
+          </div>
+          <div class="workbench-grid">
+            <aside class="project-rail">
+              <span class="rail-title">Assets</span>
+              <button class="project-pill active" type="button">Source Clip</button>
+              <button class="project-pill" type="button">Selection</button>
+              <button class="project-pill" type="button">Edit Brief</button>
+              <div class="asset-stack" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </aside>
+            <div class="canvas-stage">
+              <div class="canvas-toolbar">
+                <span>Frame</span>
+                <span>Selection</span>
+                <span>Region</span>
+              </div>
+              <div class="canvas-image">
+                <div class="mask-glow"></div>
+                <div class="bbox bbox-main">
+                  <i></i><i></i><i></i><i></i>
+                </div>
+                <div class="bbox bbox-secondary">
+                  <i></i><i></i><i></i><i></i>
+                </div>
+              </div>
+            </div>
+            <aside class="task-console">
+              <span class="rail-title">Render</span>
+              <div class="console-field">
+                <span>Mode</span>
+                <strong>Directed Edit</strong>
+              </div>
+              <div class="console-field">
+                <span>Direction</span>
+                <p>Transform the selected subject while preserving the surrounding scene.</p>
+              </div>
+              <div class="console-meter">
+                <span></span>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="studio" class="workspace" aria-labelledby="studio-title">
+        <div class="section-heading">
+          <p class="eyebrow">Create a Controlled Edit</p>
+          <h2 id="studio-title">Edit Workspace</h2>
+        </div>
+
+        <form class="studio-shell" id="task-form" aria-label="FlowStudio task composer">
+          <section class="control-panel">
+            <div class="field-grid">
+              <label class="field">
+                <span>Project Name</span>
+                <input id="project-name" name="projectName" type="text" value="Project_Flower" />
+              </label>
+
+              <label class="field">
+                <span>Mode</span>
+                <input type="text" value="Directed Edit" readonly />
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Input Video</span>
+              <input id="video-input" name="video" type="file" accept="video/mp4,video/webm,video/quicktime" />
+            </label>
+
+            <div class="file-readout" id="video-meta">No clip selected</div>
+
+            <div class="prompt-grid">
+              <label class="field">
+                <span>Original Scene <small>Optional</small></span>
+                <textarea id="source-prompt" name="sourcePrompt" rows="4" placeholder="Describe the original subject, setting, and visual style."></textarea>
+              </label>
+
+              <label class="field">
+                <span>Edit Direction</span>
+                <textarea id="target-prompt" name="targetPrompt" rows="4" required>A red rose is blooming in a garden surrounded by many other blue flowers, its petals glowing softly in sunlight against a blurred green background.</textarea>
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Focus Word</span>
+              <input id="target-word" name="targetWord" type="text" value="rose" placeholder="rose, sunflower, car..." />
+            </label>
+
+            <div class="mask-controls" aria-label="Mask controls">
+              <label class="field">
+                <span>Selection Mask</span>
+                <input id="mask-input" name="maskFile" type="file" accept="image/png,image/jpeg" />
+              </label>
+              <button class="button button-secondary" id="clear-mask" type="button">Clear Selection</button>
+            </div>
+
+            <div class="panel-footer">
+              <span class="tone-chip">Source Clip</span>
+              <span class="tone-chip">Frame Selection</span>
+              <span class="tone-chip">Model Render</span>
+              <button class="button button-primary" id="submit-task" type="submit">Run Edit</button>
+            </div>
+
+            <p class="form-message" id="form-message" role="status"></p>
+          </section>
+
+          <aside class="preview-panel" aria-labelledby="preview-title">
+            <div class="monitor-top">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="video-workbench">
+              <video id="video-preview" muted playsinline preload="metadata"></video>
+              <canvas id="frame-canvas" aria-label="Draw a rectangular mask on the first video frame" hidden></canvas>
+              <div class="canvas-placeholder" id="canvas-placeholder">
+                Import a clip, then drag across the first frame to define the edit region.
+              </div>
+            </div>
+            <div class="preview-meta">
+              <div>
+                <p class="eyebrow">Selection Preview</p>
+                <h3 id="preview-title">First-frame Region</h3>
+              </div>
+              <img id="mask-preview" alt="Generated mask preview" hidden />
+            </div>
+          </aside>
+        </form>
+      </section>
+
+      <section id="pipeline" class="pipeline-band" aria-labelledby="pipeline-title">
+        <div class="section-heading">
+          <p class="eyebrow">System Workflow</p>
+          <h2 id="pipeline-title">From Selection to Render</h2>
+        </div>
+
+        <div class="pipeline">
+          <article class="pipeline-step">
+            <span class="step-index">01</span>
+            <h3>Import</h3>
+            <p>Upload the source clip</p>
+          </article>
+          <article class="pipeline-step">
+            <span class="step-index">02</span>
+            <h3>Select</h3>
+            <p>Mark the edit region</p>
+          </article>
+          <article class="pipeline-step">
+            <span class="step-index">03</span>
+            <h3>Describe</h3>
+            <p>Set direction and focus</p>
+          </article>
+          <article class="pipeline-step">
+            <span class="step-index">04</span>
+            <h3>Render</h3>
+            <p>Run the model pipeline</p>
+          </article>
+          <article class="pipeline-step">
+            <span class="step-index">05</span>
+            <h3>Review</h3>
+            <p>Preview and download</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="result" class="result-zone" aria-labelledby="result-title">
+        <div class="section-heading">
+          <p class="eyebrow">Rendered Output</p>
+          <h2 id="result-title">Edited Preview</h2>
+        </div>
+
+        <div class="result-layout">
+          <div class="result-video-wrap">
+            <video id="result-video" controls playsinline hidden></video>
+            <div class="result-placeholder" id="result-placeholder">Waiting for the rendered clip</div>
+          </div>
+          <div class="task-card">
+            <dl>
+              <div>
+                <dt>Render Status</dt>
+                <dd id="task-status"><span class="status-dot"></span>Ready</dd>
+              </div>
+              <div>
+                <dt>Render ID</dt>
+                <dd id="task-id">-</dd>
+              </div>
+              <div>
+                <dt>Project Name</dt>
+                <dd id="task-project">Project_Flower</dd>
+              </div>
+              <div>
+                <dt>Edit Direction</dt>
+                <dd id="task-prompt">A red rose blooms within the selected region.</dd>
+              </div>
+              <div>
+                <dt>Message</dt>
+                <dd id="task-message">Ready to render an edit.</dd>
+              </div>
+            </dl>
+            <a class="button button-primary download-link" id="download-link" href="#" download hidden>Download Edited Video</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>FlowStudio</span>
+      <a href="https://github.com/ZeChen-AI/FlowStudio.github.io" target="_blank" rel="noreferrer">
+        github.com/ZeChen-AI/FlowStudio.github.io
+      </a>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
