@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FlowStudio interaction history" />
+    <title>FlowStudio History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="portal.css" />
+  </head>
+  <body class="portal-page">
+    <div class="portal-noise" aria-hidden="true"></div>
+
+    <header class="portal-header">
+      <a class="portal-leave" href="index.html">← Leave</a>
+      <div class="portal-heading">
+        <p class="portal-eyebrow">Private Interaction Archive</p>
+        <h1>History</h1>
+      </div>
+      <span id="history-user" class="portal-header-badge"></span>
+    </header>
+
+    <main class="portal-main">
+      <p id="history-message" class="portal-message" role="status"></p>
+      <section id="history-list" class="portal-list" aria-live="polite"></section>
+
+      <nav class="portal-pagination" aria-label="History pagination">
+        <button id="history-prev" type="button">Previous</button>
+        <span id="history-page">Page 1 / 1</span>
+        <button id="history-next" type="button">Next</button>
+      </nav>
+    </main>
+
+    <script src="history.js"></script>
+  </body>
+</html>

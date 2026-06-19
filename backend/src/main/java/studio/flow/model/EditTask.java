@@ -2,21 +2,25 @@ package studio.flow.model;
 
 import java.nio.file.Path;
 
+/**
+ * Mutable task state shared by HTTP requests and the background task runner.
+ */
 public class EditTask {
   private final String taskId;
-  private String username;
-  private String projectName;
-  private String sourcePrompt;
-  private String targetPrompt;
-  private String targetWord;
-  private TaskStatus status = TaskStatus.PENDING;
-  private Path taskDir;
-  private Path inputVideoPath;
-  private Path maskPath;
-  private Path resultVideoPath;
-  private String resultUrl;
-  private String message;
-  private String errorMessage;
+  private volatile String username;
+  private volatile String createdAt;
+  private volatile String projectName;
+  private volatile String sourcePrompt;
+  private volatile String targetPrompt;
+  private volatile String targetWord;
+  private volatile TaskStatus status = TaskStatus.PENDING;
+  private volatile Path taskDir;
+  private volatile Path inputVideoPath;
+  private volatile Path maskPath;
+  private volatile Path resultVideoPath;
+  private volatile String resultUrl;
+  private volatile String message;
+  private volatile String errorMessage;
 
   public EditTask(String taskId) {
     this.taskId = taskId;
@@ -32,6 +36,14 @@ public class EditTask {
 
   public void setUsername(String username) {
     this.username = username;
+  }
+
+  public String getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(String createdAt) {
+    this.createdAt = createdAt;
   }
 
   public String getProjectName() {

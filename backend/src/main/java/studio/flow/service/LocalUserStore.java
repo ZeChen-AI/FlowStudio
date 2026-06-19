@@ -2,10 +2,13 @@ package studio.flow.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import studio.flow.model.UserRecord;
@@ -22,6 +25,11 @@ public class LocalUserStore implements UserStore {
   @Override
   public synchronized Optional<UserRecord> findByUsername(String username) throws Exception {
     return Optional.ofNullable(readAll().get(username));
+  }
+
+  @Override
+  public synchronized List<UserRecord> findAll() throws Exception {
+    return new ArrayList<>(readAll().values());
   }
 
   @Override
@@ -43,13 +51,23 @@ public class LocalUserStore implements UserStore {
     if (!Files.exists(usersFile) || Files.size(usersFile) == 0) {
       return new LinkedHashMap<>();
     }
-    return objectMapper.readValue(usersFile.toFile(), new TypeReference<LinkedHashMap<String, UserRecord>>() {});
+    return objectMapper.readValue(
+        usersFile.toFile(), new TypeReference<LinkedHashMap<String, UserRecord>>() {});
   }
 
   private void writeAll(Map<String, UserRecord> users) throws Exception {
     Files.createDirectories(usersFile.getParent());
     Path temp = usersFile.resolveSibling(usersFile.getFileName() + ".tmp");
     objectMapper.writerWithDefaultPrettyPrinter().writeValue(temp.toFile(), users);
-    Files.move(temp, usersFile, StandardCopyOption.REPLACE_EXISTING);
+
+    try {
+      Files.move(
+          temp,
+          usersFile,
+          StandardCopyOption.REPLACE_EXISTING,
+          StandardCopyOption.ATOMIC_MOVE);
+    } catch (AtomicMoveNotSupportedException ignored) {
+      Files.move(temp, usersFile, StandardCopyOption.REPLACE_EXISTING);
+    }
   }
 }

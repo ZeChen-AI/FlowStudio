@@ -77,6 +77,10 @@ function closeAuthModal() {
 }
 
 function showAuth(message = "") {
+  // Always destroy the previous workspace before exposing the login screen.
+  // This prevents the next account from inheriting files, prompts, masks,
+  // task IDs, previews, or late async responses from the previous account.
+  resetWorkspaceState();
   loggedInUsername = "";
   document.body.classList.add("auth-locked");
   if (authScreen) authScreen.hidden = false;
@@ -93,6 +97,9 @@ function showAuth(message = "") {
 }
 
 function showApp(username) {
+  // A successful login starts a fresh browser-side workspace. Server-side
+  // task history, if desired, must be loaded explicitly for this username.
+  resetWorkspaceState();
   loggedInUsername = username;
   document.body.classList.remove("auth-locked");
   if (authScreen) authScreen.hidden = true;
@@ -109,7 +116,7 @@ async function readJson(response) {
 }
 
 async function authJson(path, body = undefined) {
-  const options = { method: body ? "POST" : "GET", credentials: "include", headers: body ? { "Content-Type": "application/json" } : {} };
+  const options = { method: body ? "POST" : "GET", credentials: "include", cache: "no-store", headers: body ? { "Content-Type": "application/json" } : {} };
   if (body) options.body = JSON.stringify(body);
   const response = await fetch(`${API_BASE}${path}`, options);
   const data = await readJson(response);
@@ -297,6 +304,8 @@ let dragStart = null;
 let activeTaskId = "";
 let pollTimer = 0;
 let frameCaptureRequested = false;
+let workspaceEpoch = 0;
+const activeTaskRequestControllers = new Set();
 
 function setMessage(message, tone = "neutral") {
   formMessage.textContent = message;
@@ -336,6 +345,74 @@ function clearPolling() {
   if (pollTimer) {
     window.clearInterval(pollTimer);
     pollTimer = 0;
+  }
+}
+
+function abortTaskRequests() {
+  activeTaskRequestControllers.forEach((controller) => controller.abort());
+  activeTaskRequestControllers.clear();
+}
+
+async function taskFetch(url, options = {}) {
+  const controller = new AbortController();
+  activeTaskRequestControllers.add(controller);
+
+  try {
+    return await fetch(url, { cache: "no-store", ...options, signal: controller.signal });
+  } finally {
+    activeTaskRequestControllers.delete(controller);
+  }
+}
+
+function resetWorkspaceState() {
+  workspaceEpoch += 1;
+  clearPolling();
+  abortTaskRequests();
+
+  activeTaskId = "";
+  currentMaskBlob = null;
+  currentMaskSource = "";
+  baseFrame = null;
+  dragStart = null;
+  frameCaptureRequested = false;
+
+  if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+  if (maskObjectUrl) URL.revokeObjectURL(maskObjectUrl);
+  videoObjectUrl = "";
+  maskObjectUrl = "";
+
+  form?.reset();
+
+  if (videoPreview) {
+    videoPreview.pause();
+    videoPreview.removeAttribute("src");
+    videoPreview.load();
+  }
+  if (videoMeta) videoMeta.textContent = "No clip selected";
+
+  if (maskPreview) {
+    maskPreview.removeAttribute("src");
+    maskPreview.hidden = true;
+  }
+
+  if (frameCanvas && ctx) {
+    ctx.clearRect(0, 0, frameCanvas.width, frameCanvas.height);
+    frameCanvas.hidden = true;
+    frameCanvas.style.removeProperty("aspect-ratio");
+  }
+  if (placeholder) placeholder.hidden = false;
+
+  resetResult();
+
+  if (taskIdText) taskIdText.textContent = "-";
+  if (taskProject) taskProject.textContent = "-";
+  if (taskPrompt) taskPrompt.textContent = "-";
+  setStatus("READY", "No active task for this session.");
+  setMessage("");
+
+  if (submitButton) {
+    submitButton.disabled = false;
+    submitButton.textContent = "Run Edit";
   }
 }
 
@@ -510,7 +587,7 @@ frameCanvas?.addEventListener("pointerup", (event) => {
 });
 
 async function fetchTask(taskId) {
-  const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, { credentials: "include" });
+  const response = await taskFetch(`${API_BASE}/api/tasks/${taskId}`, { credentials: "include" });
   handleUnauthorized(response);
   if (!response.ok) throw new Error("Unable to fetch task status.");
   return response.json();
@@ -545,11 +622,22 @@ function renderTask(task) {
 
 function startPolling(taskId) {
   clearPolling();
+  const pollingEpoch = workspaceEpoch;
+  const pollingUsername = loggedInUsername;
+
   pollTimer = window.setInterval(async () => {
+    if (pollingEpoch !== workspaceEpoch || pollingUsername !== loggedInUsername) {
+      clearPolling();
+      return;
+    }
+
     try {
       const task = await fetchTask(taskId);
+      if (pollingEpoch !== workspaceEpoch || pollingUsername !== loggedInUsername) return;
       renderTask(task);
     } catch (error) {
+      if (error.name === "AbortError") return;
+      if (pollingEpoch !== workspaceEpoch || pollingUsername !== loggedInUsername) return;
       setMessage(error.message, "error");
     }
   }, POLL_INTERVAL_MS);
@@ -598,8 +686,11 @@ form?.addEventListener("submit", async (event) => {
   setStatus("PENDING", "Preparing assets for rendering.");
   setMessage("Sending the edit to FlowStudio...");
 
+  const requestEpoch = workspaceEpoch;
+  const requestUsername = loggedInUsername;
+
   try {
-    const response = await fetch(`${API_BASE}/api/tasks/edit`, {
+    const response = await taskFetch(`${API_BASE}/api/tasks/edit`, {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -608,12 +699,18 @@ form?.addEventListener("submit", async (event) => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.errorMessage || data.message || "Render request failed.");
 
+    // Ignore a response that belongs to a workspace that has since logged out
+    // or switched accounts. This closes the in-flight request race.
+    if (requestEpoch !== workspaceEpoch || requestUsername !== loggedInUsername) return;
+
     activeTaskId = data.taskId;
     renderTask(data);
     submitButton.textContent = "Rendering...";
     setMessage("Edit queued. Tracking render progress.", "success");
     startPolling(data.taskId);
   } catch (error) {
+    if (error.name === "AbortError") return;
+    if (requestEpoch !== workspaceEpoch || requestUsername !== loggedInUsername) return;
     submitButton.disabled = false;
     submitButton.textContent = "Run Edit";
     setStatus("FAILED", error.message);

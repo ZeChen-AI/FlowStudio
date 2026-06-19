@@ -1583,3 +1583,48 @@ body.auth-locked > .flow-session-actions { display: none !important; }
     border-width: 3px;
   }
 }
+
+
+/* Separate-page navigation.
+   All three links reuse the original .repo-link style, so Manage and History
+   match the GitHub button exactly. */
+.header-page-actions {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.header-page-actions .repo-link {
+  justify-self: auto;
+}
+
+@media (max-width: 640px) {
+  .header-page-actions {
+    gap: 5px;
+  }
+
+  .header-page-actions .repo-link {
+    min-width: 0;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .brand > span:last-child {
+    display: none;
+  }
+
+  .header-page-actions .repo-link {
+    padding: 0 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 410px) {
+  .header-page-actions .repo-link:last-child {
+    display: none;
+  }
+}

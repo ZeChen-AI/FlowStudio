@@ -1,0 +1,11 @@
+find . -type d -name ".ipynb_checkpoints" -exec rm -rf {} +
+
+mvn spring-boot:run
+
+A peaceful coastal town at sunset, with hillside houses overlooking the harbor. Warm lights glow from the homes as the sky fades into twilight, while a brightly lit cruise ship rests on the calm water below.
+
+A woman in a pink sweater, seen from behind, walks forward to hug a person in a gray top.
+
+A woman in a lemon sweater, seen from behind, walks forward to hug a person in a gray top.
+lemon sweater
+

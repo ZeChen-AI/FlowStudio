@@ -8,9 +8,11 @@ public class FlowStudioProperties {
   private Path runtimeDir = Path.of("runtime");
   private Path datasetDir = Path.of("dataset");
   private String autodlBaseUrl = "";
+  private String autodlInternalToken = "";
   private boolean mockRunner = true;
   private long runnerTimeoutSeconds = 1800;
   private Auth auth = new Auth();
+  private Admin admin = new Admin();
 
   public Path getRuntimeDir() {
     return runtimeDir;
@@ -36,6 +38,14 @@ public class FlowStudioProperties {
     this.autodlBaseUrl = autodlBaseUrl;
   }
 
+  public String getAutodlInternalToken() {
+    return autodlInternalToken;
+  }
+
+  public void setAutodlInternalToken(String autodlInternalToken) {
+    this.autodlInternalToken = autodlInternalToken;
+  }
+
   public boolean isMockRunner() {
     return mockRunner;
   }
@@ -58,6 +68,14 @@ public class FlowStudioProperties {
 
   public void setAuth(Auth auth) {
     this.auth = auth;
+  }
+
+  public Admin getAdmin() {
+    return admin;
+  }
+
+  public void setAdmin(Admin admin) {
+    this.admin = admin;
   }
 
   public static class Auth {
@@ -93,6 +111,27 @@ public class FlowStudioProperties {
     public void setUrl(String url) {
       this.url = url;
     }
+
+    public String getUsername() {
+      return username;
+    }
+
+    public void setUsername(String username) {
+      this.username = username;
+    }
+
+    public String getPassword() {
+      return password;
+    }
+
+    public void setPassword(String password) {
+      this.password = password;
+    }
+  }
+
+  public static class Admin {
+    private String username = "hihihihi";
+    private String password = "666666";
 
     public String getUsername() {
       return username;
