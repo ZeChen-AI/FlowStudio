@@ -1,0 +1,16 @@
+{
+  "taskId" : "task-67fadbaf-bef2-41ef-8ab8-688a5c0d5e2d",
+  "username" : "123456",
+  "createdAt" : "2026-06-16T03:59:11.530508299Z",
+  "projectName" : "Project",
+  "sourcePrompt" : "",
+  "targetPrompt" : "A peaceful coastal town at sunset, with hillside houses overlooking the harbor. Warm lights glow from the homes as the sky fades into twilight, while a brightly lit cruise ship rests on the calm water below.",
+  "targetWord" : "houses",
+  "status" : "SUCCESS",
+  "inputVideo" : "input.mp4",
+  "mask" : "mask.png",
+  "resultVideo" : "result.mp4",
+  "resultUrl" : "/api/files/task-67fadbaf-bef2-41ef-8ab8-688a5c0d5e2d/result.mp4",
+  "message" : "Mock runner copied input video as result.",
+  "errorMessage" : ""
+}

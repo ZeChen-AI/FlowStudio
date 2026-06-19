@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FlowStudio administration" />
+    <title>FlowStudio Manage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="portal.css" />
+  </head>
+  <body class="portal-page">
+    <div class="portal-noise" aria-hidden="true"></div>
+
+    <header class="portal-header">
+      <a id="manage-leave" class="portal-leave" href="index.html">← Leave</a>
+      <div class="portal-heading">
+        <p class="portal-eyebrow">FlowStudio Administration</p>
+        <h1>Manage</h1>
+      </div>
+      <span id="admin-badge" class="portal-header-badge"></span>
+    </header>
+
+    <main class="portal-main">
+      <section id="admin-login-panel" class="portal-card admin-login-card">
+        <div class="admin-login-copy">
+          <p class="portal-eyebrow">Administrator Access</p>
+          <h2>Administrator Login</h2>
+          <p>
+            Sign in with the configured administrator credentials to inspect
+            users, interaction counts, and account deletion controls.
+          </p>
+        </div>
+
+        <form id="admin-login-form" class="admin-login-form">
+          <label class="portal-field">
+            <span>Administrator Username</span>
+            <input
+              id="admin-username"
+              type="text"
+              autocomplete="username"
+              placeholder="hihihihi"
+              required
+            />
+          </label>
+
+          <label class="portal-field">
+            <span>Administrator Password</span>
+            <input
+              id="admin-password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="••••••"
+              required
+            />
+          </label>
+
+          <button id="admin-submit" class="portal-primary" type="submit">
+            Enter Manage
+          </button>
+          <p id="admin-login-message" class="portal-message" role="status"></p>
+        </form>
+      </section>
+
+      <section id="admin-users-panel" hidden>
+        <div class="admin-panel-heading">
+          <div>
+            <p class="portal-eyebrow">User Database</p>
+            <h2>Registered Users</h2>
+          </div>
+          <p>
+            User passwords are stored as one-way hashes and are displayed as
+            protected masks rather than plaintext.
+          </p>
+        </div>
+
+        <p id="admin-users-message" class="portal-message" role="status"></p>
+        <section id="admin-users-list" class="portal-list" aria-live="polite"></section>
+
+        <nav class="portal-pagination" aria-label="User pagination">
+          <button id="admin-prev" type="button">Previous</button>
+          <span id="admin-page">Page 1 / 1</span>
+          <button id="admin-next" type="button">Next</button>
+        </nav>
+      </section>
+    </main>
+
+    <script src="manage.js"></script>
+  </body>
+</html>

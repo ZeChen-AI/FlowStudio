@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import studio.flow.model.UserRecord;
 
@@ -45,13 +47,24 @@ public class MysqlUserStore implements UserStore {
         if (!resultSet.next()) {
           return Optional.empty();
         }
-        return Optional.of(
-            new UserRecord(
-                resultSet.getString("username"),
-                resultSet.getString("password_hash"),
-                resultSet.getString("created_at")));
+        return Optional.of(readUser(resultSet));
       }
     }
+  }
+
+  @Override
+  public List<UserRecord> findAll() throws Exception {
+    List<UserRecord> users = new ArrayList<>();
+    try (Connection connection = connection();
+        PreparedStatement statement =
+            connection.prepareStatement(
+                "SELECT username, password_hash, created_at FROM flowstudio_users ORDER BY created_at DESC");
+        ResultSet resultSet = statement.executeQuery()) {
+      while (resultSet.next()) {
+        users.add(readUser(resultSet));
+      }
+    }
+    return users;
   }
 
   @Override
@@ -62,7 +75,9 @@ public class MysqlUserStore implements UserStore {
                 """
                 INSERT INTO flowstudio_users(username, password_hash, created_at)
                 VALUES(?, ?, ?)
-                ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), created_at = VALUES(created_at)
+                ON DUPLICATE KEY UPDATE
+                  password_hash = VALUES(password_hash),
+                  created_at = VALUES(created_at)
                 """)) {
       statement.setString(1, user.getUsername());
       statement.setString(2, user.getPasswordHash());
@@ -79,6 +94,13 @@ public class MysqlUserStore implements UserStore {
       statement.setString(1, username);
       statement.executeUpdate();
     }
+  }
+
+  private UserRecord readUser(ResultSet resultSet) throws Exception {
+    return new UserRecord(
+        resultSet.getString("username"),
+        resultSet.getString("password_hash"),
+        resultSet.getString("created_at"));
   }
 
   private Connection connection() throws Exception {

@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,15 +23,19 @@ import studio.flow.dto.ResultResponse;
 import studio.flow.dto.TaskResponse;
 import studio.flow.model.EditTask;
 import studio.flow.model.TaskStatus;
+import studio.flow.service.SessionAuthService;
 import studio.flow.service.TaskService;
 
 @RestController
 @RequestMapping("/api")
 public class TaskController {
   private final TaskService taskService;
+  private final SessionAuthService sessionAuthService;
 
-  public TaskController(TaskService taskService) {
+  public TaskController(
+      TaskService taskService, SessionAuthService sessionAuthService) {
     this.taskService = taskService;
+    this.sessionAuthService = sessionAuthService;
   }
 
   @PostMapping(value = "/tasks/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -43,33 +48,43 @@ public class TaskController {
       @RequestPart("mask") MultipartFile mask,
       HttpSession session)
       throws IOException {
-    String username = AuthController.requireUsername(session);
+    String username = sessionAuthService.requireUsername(session);
     return toResponse(
-        taskService.createEditTask(username, projectName, sourcePrompt, targetPrompt, targetWord, video, mask));
+        taskService.createEditTask(
+            username, projectName, sourcePrompt, targetPrompt, targetWord, video, mask));
   }
 
   @GetMapping("/tasks/{taskId}")
   public TaskResponse getTask(@PathVariable String taskId, HttpSession session) {
-    String username = AuthController.requireUsername(session);
-    EditTask task = taskService.findForUser(username, taskId).orElseThrow(() -> new IllegalArgumentException("Task not found."));
-    return toResponse(task);
+    String username = sessionAuthService.requireUsername(session);
+    return toResponse(
+        taskService
+            .findForUser(username, taskId)
+            .orElseThrow(() -> new IllegalArgumentException("Task not found.")));
   }
 
   @GetMapping("/tasks/{taskId}/status")
   public TaskResponse getTaskStatus(@PathVariable String taskId, HttpSession session) {
-    String username = AuthController.requireUsername(session);
-    EditTask task = taskService.findForUser(username, taskId).orElseThrow(() -> new IllegalArgumentException("Task not found."));
-    return toResponse(task);
+    return getTask(taskId, session);
   }
 
   @GetMapping("/tasks/{taskId}/result")
-  public ResultResponse getTaskResult(@PathVariable String taskId, HttpSession session) {
-    String username = AuthController.requireUsername(session);
-    EditTask task = taskService.findForUser(username, taskId).orElseThrow(() -> new IllegalArgumentException("Task not found."));
-    if (task.getStatus() != TaskStatus.SUCCESS || task.getResultUrl() == null || task.getResultUrl().isBlank()) {
+  public ResultResponse getTaskResult(
+      @PathVariable String taskId, HttpSession session) {
+    String username = sessionAuthService.requireUsername(session);
+    EditTask task =
+        taskService
+            .findForUser(username, taskId)
+            .orElseThrow(() -> new IllegalArgumentException("Task not found."));
+
+    if (task.getStatus() != TaskStatus.SUCCESS
+        || task.getResultUrl() == null
+        || task.getResultUrl().isBlank()) {
       throw new IllegalArgumentException("Result is not ready.");
     }
-    return new ResultResponse(task.getTaskId(), task.getResultUrl(), task.getMessage());
+
+    return new ResultResponse(
+        task.getTaskId(), task.getResultUrl(), task.getMessage());
   }
 
   @GetMapping("/files/{taskId}/{fileName}")
@@ -78,19 +93,25 @@ public class TaskController {
       @PathVariable String fileName,
       HttpSession session)
       throws Exception {
-    String username = AuthController.requireUsername(session);
+    String username = sessionAuthService.requireUsername(session);
     Path file = taskService.resolveTaskFile(username, taskId, fileName);
     Resource resource = new UrlResource(file.toUri());
 
     String contentType = Files.probeContentType(file);
     MediaType mediaType =
-        contentType == null ? MediaType.APPLICATION_OCTET_STREAM : MediaType.parseMediaType(contentType);
+        contentType == null
+            ? MediaType.APPLICATION_OCTET_STREAM
+            : MediaType.parseMediaType(contentType);
 
     return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore().cachePrivate())
         .contentType(mediaType)
         .header(
             HttpHeaders.CONTENT_DISPOSITION,
-            ContentDisposition.inline().filename(file.getFileName().toString()).build().toString())
+            ContentDisposition.inline()
+                .filename(file.getFileName().toString())
+                .build()
+                .toString())
         .body(resource);
   }
 
